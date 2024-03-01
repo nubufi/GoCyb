@@ -1,7 +1,7 @@
 package shodan
 
 const (
-	API_KEY  = "x59n6O40WKMD2ID2JSIAh7BrKFD0WsPh"
+	API_KEY  = ""
 	BASE_URL = "https://api.shodan.io"
 )
 
