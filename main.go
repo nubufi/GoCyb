@@ -2,28 +2,31 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 
-	"github.com/nubufi/GoCyb/shodan"
+	"github.com/nubufi/GoCyb/metasploit"
 )
 
 func main() {
-	s := shodan.New(shodan.API_KEY)
+	host := os.Getenv("MSFHOST")
+	pass := os.Getenv("MSFPASS")
+	user := "msf"
 
-	info, err := s.APIInfo()
+	msf, err := metasploit.New(host, user, pass)
 	if err != nil {
-		panic(err)
+		log.Panicln(err)
 	}
 
-	fmt.Printf("Query Credits: %d\nScan Credits: %d\n\n",
-		info.QueryCredits,
-		info.ScanCredits)
+	defer msf.Logout()
 
-	hostSearch, err := s.HostSearch("tomcat")
+	sessions, err := msf.SessionList()
 	if err != nil {
-		panic(err)
+		log.Panicln(err)
 	}
 
-	for _, host := range hostSearch.Matches {
-		fmt.Printf("%18s%8d\n", host.IPString, host.Port)
+	fmt.Println("Sessions:")
+	for _, session := range sessions {
+		fmt.Printf("%5d %s\n", session.ID, session.Info)
 	}
 }
