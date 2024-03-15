@@ -4,28 +4,72 @@ import (
 	"github.com/miekg/dns"
 )
 
-func DnsLookUp(domain string) ([]string, error) {
-	var IpList []string
-	var msg dns.Msg
+func LookupA(domain, server string) ([]string, error) {
+	ipList, err := lookUpRecord(domain, server, dns.TypeA)
 
-	fqdn := dns.Fqdn(domain)
+	return ipList, err
+}
 
-	msg.SetQuestion(fqdn, dns.TypeA)
+func LookupCname(domain, server string) ([]string, error) {
+	cnames, err := lookUpRecord(domain, server, dns.TypeCNAME)
 
-	in, err := dns.Exchange(&msg, "8.8.8.8:53")
-	if err != nil {
-		return IpList, err
-	}
+	return cnames, err
+}
 
-	if len(in.Answer) < 1 {
-		return IpList, nil
-	}
+type result struct {
+	Hostname string
+	Ip       string
+}
 
-	for _, answer := range in.Answer {
-		if a, ok := answer.(*dns.A); ok {
-			IpList = append(IpList, a.A.String())
+func lookupSubDomain(domain, server string) []result {
+	var results []result
+	var cfqdn = domain
+
+	for {
+		cnames, err := LookupCname(cfqdn, server)
+		if err == nil && len(cnames) > 0 {
+			cfqdn = cnames[0]
+			continue
 		}
+		ips, err := LookupA(cfqdn, server)
+		if err != nil {
+			break
+		}
+		for _, ip := range ips {
+			results = append(results, result{cfqdn, ip})
+		}
+		break
+	}
+	return results
+}
+
+func SubDomainScanner(domain, server string, workers int, wordList []string) []result {
+	var results []result
+	var fqdns = make(chan string, workers)
+	var gather = make(chan []result)
+	var tracker = make(chan empty)
+
+	for i := 0; i < workers; i++ {
+		go worker(tracker, fqdns, gather, server)
 	}
 
-	return IpList, nil
+	for _, word := range wordList {
+		fqdns <- word + "." + domain
+	}
+
+	go func() {
+		for r := range gather {
+			results = append(results, r...)
+		}
+		var e empty
+		tracker <- e
+	}()
+
+	close(fqdns)
+	for i := 0; i < workers; i++ {
+		<-tracker
+	}
+	close(gather)
+
+	return results
 }
