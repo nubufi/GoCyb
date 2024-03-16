@@ -6,6 +6,26 @@ import (
 	"github.com/miekg/dns"
 )
 
+// lookUpRecord performs a DNS lookup for the specified domain, using the given server and record type.
+// It returns a slice of strings containing the IP addresses associated with the domain, and an error if any.
+//
+// Parameters:
+//
+// - domain: The domain to lookup.
+//
+// - server: The DNS server to use for the lookup.
+//
+// - recordType: The type of DNS record to lookup.
+//
+// Returns:
+//
+// - []string: A list of IP addresses associated with the domain.
+//
+// - error: Any error encountered during the lookup.
+//
+// Example:
+//
+// - ips, err := lookUpRecord("example.com", "8.8.8.8:53", dns.TypeA)
 func lookUpRecord(domain, server string, recordType uint16) ([]string, error) {
 	var records []string
 	var msg dns.Msg

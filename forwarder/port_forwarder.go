@@ -28,7 +28,21 @@ func handler(src net.Conn, domain string, port int) {
 	}
 }
 
-func PortForwarder(domain string, targetPort, hostPort int) {
+// PortForwarder forwards the traffic from the hostPort to the targetPort
+// using the domain as the target
+//
+// Parameters:
+//
+// - domain: the domain to forward the traffic to
+//
+// - hostPort: the port to listen for traffic
+//
+// - targetPort: the port to forward the traffic to
+//
+// Example:
+//
+// - forwarder.PortForwarder("example.com", 8080, 80)
+func PortForwarder(domain string, hostPort, targetPort int) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", hostPort))
 	if err != nil {
 		log.Fatalln(err)
