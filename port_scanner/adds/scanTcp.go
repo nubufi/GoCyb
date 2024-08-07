@@ -6,23 +6,10 @@ import (
 	"time"
 )
 
-const (
-	Open     = "Open"
-	Closed   = "Closed"
-	Filtered = "Filtered"
-)
-
-type ServiceVersion struct {
-	Port     int
-	Protocol string
-	Service  string
-	Response string
-}
-
-func ScanPort(ip string, port int) string {
+func ScanPortTCP(ip string, port int) string {
 	address := fmt.Sprintf("%s:%d", ip, port)
 
-	timeout := 5 * time.Second
+	timeout := 10 * time.Second
 	conn, err := net.DialTimeout("tcp", address, timeout)
 	if err != nil {
 		if _, ok := err.(*net.OpError); ok {
@@ -34,16 +21,9 @@ func ScanPort(ip string, port int) string {
 	return Open
 }
 
-func DetectService(port int, services map[int]string) ServiceVersion {
-	if svc, ok := services[port]; ok {
-		return ServiceVersion{Port: port, Protocol: "tcp", Service: svc, Response: "Service Detected"}
-	}
-	return ServiceVersion{Port: port, Protocol: "Unknown", Service: "Unknown", Response: "Service Not Detected"}
-}
-
-func Worker(ip string, ports, results chan int, openPorts chan ServiceVersion, done chan bool, services map[int]string) {
+func WorkerTCP(ip string, ports, results chan int, openPorts chan ServiceVersion, done chan bool, services map[int]string) {
 	for port := range ports {
-		state := ScanPort(ip, port)
+		state := ScanPortTCP(ip, port)
 		service := DetectService(port, services)
 		results <- port
 		if state == Open {
