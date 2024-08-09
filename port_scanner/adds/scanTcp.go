@@ -6,9 +6,21 @@ import (
 	"time"
 )
 
+// ScanPortTCP scans a TCP port on a given IP address to determine its state.
+//
+// Parameters:
+// - ip: The IP address to scan.
+// - port: The port number to scan.
+//
+// Returns:
+// - string: The state of the port, which can be "Open", "Closed", or "Filtered".
+//
+// The function attempts to establish a TCP connection to the specified IP address and port.
+// If the connection is successful, the port is considered "Open".
+// If the connection fails due to a timeout or other network error, the port is considered "Filtered".
+// If any other error occurs, the port is considered "Closed".
 func ScanPortTCP(ip string, port int) string {
 	address := fmt.Sprintf("%s:%d", ip, port)
-
 	timeout := 10 * time.Second
 	conn, err := net.DialTimeout("tcp", address, timeout)
 	if err != nil {
@@ -21,6 +33,20 @@ func ScanPortTCP(ip string, port int) string {
 	return Open
 }
 
+// WorkerTCP is a worker function that scans ports and sends the results to channels.
+//
+// Parameters:
+// - ip: The IP address to scan.
+// - ports: A channel that provides port numbers to scan.
+// - results: A channel to send the scanned port numbers.
+// - openPorts: A channel to send details of open ports and their detected services.
+// - done: A channel to signal when the worker has finished processing all ports.
+// - services: A map of known services with port numbers as keys and service names as values.
+//
+// The function retrieves port numbers from the `ports` channel, scans them using `ScanPortTCP`,
+// and detects services using `DetectService`. It sends the results to the `results` channel and
+// details of open ports to the `openPorts` channel. When all ports have been processed, the function
+// sends a signal through the `done` channel.
 func WorkerTCP(ip string, ports, results chan int, openPorts chan ServiceVersion, done chan bool, services map[int]string) {
 	for port := range ports {
 		state := ScanPortTCP(ip, port)

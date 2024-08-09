@@ -1,6 +1,17 @@
 package adds
 
-// data from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv
+// Servicess is a map that associates well-known port numbers with their corresponding services.
+//
+// This map is populated with data from the official IANA service names and port numbers registry,
+// which can be found at https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.csv.
+//
+// The key is an integer representing the port number, and the value is a string representing the service name.
+//
+// Example:
+// - 1: "tcpmux"
+// - 7: "echo"
+// - 13: "daytime"
+
 var Servicess = map[int]string{
 	1:           "tcpmux",
 	2:           "compressnet",
